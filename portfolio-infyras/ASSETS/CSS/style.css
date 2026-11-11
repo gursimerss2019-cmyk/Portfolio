@@ -2272,6 +2272,9 @@ span.cta-num ,.cta-stat strong{
 .cards {
     height: 390px;
 }
+    .line {
+    gap: 7px;
+}
 }
 
 
