@@ -290,17 +290,17 @@ document.addEventListener("DOMContentLoaded", () => {
     arrows: false,
     pagination: false,
     drag: false,            // pure marquee; use "free" if you want it draggable
-    breakpoints: { 
-       1280:{
-        gap:20
-       },
-       991:{
-        perPage:2
-       },
-       575:{
-        perPage:1
-       }
-     }
+    breakpoints: {
+      1280: {
+        gap: 20
+      },
+      991: {
+        perPage: 2
+      },
+      575: {
+        perPage: 1
+      }
+    }
   };
 
   // Slider A: scrolls left
@@ -532,4 +532,86 @@ document.addEventListener("DOMContentLoaded", () => {
   dress(".expertise-horizontal-section", ["grid", ["blobs", { n: 2 }]]);
   dress(".cta-section", [["ticker", { text: "Let’s Talk", top: "55%", reverse: true, dur: 60 }], "sparks"]);
   dress("footer", [["grid", { dark: true }], ["blobs", { n: 2, o: .16 }]]);
+})();
+
+
+(function () {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- 1. header: open at the top, shrinks when scrolled ---------- */
+  const nav = document.querySelector("header nav");
+  const TOP = 40;                       // px scrolled before the header shrinks
+  let isOpen = null;
+  function syncHeader() {
+    const open = window.scrollY < TOP;
+    if (open !== isOpen) { isOpen = open; nav.classList.toggle("is-open", open); }
+  }
+  window.addEventListener("scroll", syncHeader, { passive: true });
+  syncHeader();
+
+  /* ---------- 2. sections (order must match the page) ----------
+     offset = extra space left above a section when a link scrolls to it */
+  const sections = [
+    { id: "hero", offset: 0 },
+    { id: "about", offset: 0 },
+    { id: "work", offset: 0 },
+    { id: "expertise", offset: 0 },
+    { id: "contact", offset: 0 }
+  ].map(s => ({ ...s, el: document.getElementById(s.id) })).filter(s => s.el);
+
+  const headerLinks = [...document.querySelectorAll("header nav a[href^='#']")];
+  const footerLinks = [...document.querySelectorAll("footer .quick-links a[href^='#']")];
+
+  /* ---------- 3. active link ---------- */
+  let current = null, locked = false, lockTimer;
+
+  function setActive(id) {
+    if (id === current) return;
+    current = id;
+    headerLinks.forEach(a => {
+      const on = a.getAttribute("href") === "#" + id;
+      a.classList.toggle("active-link", on);
+      on ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current");
+    });
+    footerLinks.forEach(a => a.classList.toggle("is-current", a.getAttribute("href") === "#" + id));
+  }
+
+  /* scroll spy: the active section is the last one whose top has passed the middle of the screen */
+  const markers = sections.map(s => ScrollTrigger.create({ trigger: s.el, start: "top 50%" }));
+  function check() {
+    if (locked) return;
+    const y = window.scrollY;
+    let idx = 0;
+    markers.forEach((m, i) => { if (y >= m.start) idx = i; });
+    setActive(sections[idx].id);
+  }
+  ScrollTrigger.create({ start: 0, end: "max", onUpdate: check });
+  ScrollTrigger.addEventListener("refresh", check);
+  check();
+
+  /* ---------- 4. click to scroll (header, footer, buttons) ---------- */
+  function goTo(id) {
+    const s = sections.find(x => x.id === id);
+    if (!s) return;
+    const y = id === "hero" ? 0 : s.el.getBoundingClientRect().top + window.scrollY - s.offset;
+    window.scrollTo({ top: Math.max(0, y), behavior: reduce ? "auto" : "smooth" });
+  }
+  function release() { locked = false; check(); }
+
+  document.addEventListener("click", e => {
+    const a = e.target.closest("a[href^='#']");
+    if (!a) return;
+    const id = a.getAttribute("href").slice(1);
+    if (!sections.some(s => s.id === id)) return;
+    e.preventDefault();
+    a.blur();                            // so the header doesn't stay open from :focus-within
+    locked = true;                       // no flicker through the sections we scroll past
+    setActive(id);
+    clearTimeout(lockTimer); lockTimer = setTimeout(release, 200);
+    goTo(id);
+  });
+  window.addEventListener("scroll", () => {
+    if (!locked) return;
+    clearTimeout(lockTimer); lockTimer = setTimeout(release, 150);   // unlock when the scroll stops
+  }, { passive: true });
 })();
