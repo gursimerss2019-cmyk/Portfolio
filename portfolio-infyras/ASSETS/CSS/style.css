@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@200..800&family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
 :root {
     --bg: #ffffff;
     --ink: #1d1d1d;
@@ -2173,108 +2175,160 @@ footer {
     .wrapper-for-header nav ul a.active-link {
         gap: 0;
     }
+
     .photo {
-    max-width: 310px;
-    margin-top: 80px;
-}
-.title {
-    font-size: 67px;
-}
-section#hero {
-    padding-top: 110px;
-    padding-bottom: 90px;
-}
-.hero {
-    min-height: 500px;
-}
-.where {
-    top: 38%;
-    left: 0px;
-    font-size: 14px;
-}
-.logos {
-    right: 0;
-    top: 38%;
-    gap: 2px;
-}
-.logos img {
-    max-width: 68px;
-}
-.logos .icon-content svg {
-    width: 20px;
-}
-.logos .icon-content {
-    height: 20px;
-}
-.logos .top-rated-icon{
-    gap: 4px;
-}
-.right-side-main-content {
-    gap: 10px;
-    grid-template-columns: repeat(1, 1fr);
-}
-.ceo-image {
-    height: 214px;
-    width: 270px;
-}
-.ceo-image img {
-    top: -8px;
-}
-.ceo-image h2 {
-    left: 219px;
-    line-height: 25px;
-    font-size: 23px;
-}
-.wrapper-for-heading-content-work {
-    flex-direction: column;
-    gap: 20px;
-    padding-top: 10px;
-}
-.marquee-b {
-    padding-bottom: 100px;
-}
-.expertise-parent {
-    gap: 10px;
-    max-width: 380px;
-}
-.expertise-panel {
-    padding: 60px 20px;
-}
-.cta-title {
-    font-size: 45px;
-}
-.cta-inner {
-    gap: 10px;
-}
-.cta-text {
-    font-size: 14px;
-}
-.cta-actions {
-    margin: 10px 0;
-}
-span.cta-num ,.cta-stat strong{
-    font-size: 28px;
-}
-.cta-stats {
-    grid-template-columns: repeat(1, 1fr);
-}
-.expertise-panel-inner .desc {
-    font-size: 16px;
-}
-.expertise-panel-inner>div {
-    gap: 15px;
-}
-.card {
-    width: 200px;
-    height: 290px;
-}
-.cards {
-    height: 390px;
-}
-    .line {
-    gap: 7px;
-}
+        max-width: 310px;
+        margin-top: 80px;
+    }
+
+    .title {
+        font-size: 67px;
+    }
+
+    section#hero {
+        padding-top: 110px;
+        padding-bottom: 90px;
+    }
+
+    .hero {
+        min-height: 500px;
+    }
+
+    .where {
+        top: 38%;
+        left: 0px;
+        font-size: 14px;
+    }
+
+    .logos {
+        right: 0;
+        top: 38%;
+        gap: 2px;
+    }
+
+    .logos img {
+        max-width: 68px;
+    }
+
+    .logos .icon-content svg {
+        width: 20px;
+    }
+
+    .logos .icon-content {
+        height: 20px;
+    }
+
+    .logos .top-rated-icon {
+        gap: 4px;
+    }
+
+    .right-side-main-content {
+        gap: 10px;
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .ceo-image {
+        height: 214px;
+        width: 270px;
+    }
+
+    .ceo-image img {
+        top: -8px;
+    }
+
+    .ceo-image h2 {
+        left: 219px;
+        line-height: 25px;
+        font-size: 23px;
+    }
+
+    .wrapper-for-heading-content-work {
+        flex-direction: column;
+        gap: 20px;
+        padding-top: 10px;
+    }
+
+    .marquee-b {
+        padding-bottom: 100px;
+    }
+
+    .expertise-parent {
+        gap: 10px;
+        max-width: 380px;
+    }
+
+    .expertise-panel {
+        padding: 60px 20px;
+    }
+
+    .cta-title {
+        font-size: 45px;
+    }
+
+    .cta-inner {
+        gap: 10px;
+    }
+
+    .cta-text {
+        font-size: 14px;
+    }
+
+    .cta-actions {
+        margin: 10px 0;
+    }
+
+    span.cta-num,
+    .cta-stat strong {
+        font-size: 28px;
+    }
+
+    .cta-stats {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .expertise-panel-inner .desc {
+        font-size: 16px;
+    }
+
+    .expertise-panel-inner>div {
+        gap: 15px;
+    }
+
+    .card {
+        width: 200px;
+        height: 290px;
+    }
+
+    .cards {
+        height: 390px;
+    }
 }
 
 
 /* resposnive */
+
+/* header open at the top of the page (desktop/tablet; mobile stays icon-only) */
+@media (min-width: 768px) {
+    .wrapper-for-header nav.is-open {
+        width: min(600px, calc(100vw - 290px));
+        /* never wider than the space beside the button */
+    }
+
+    .wrapper-for-header nav.is-open ul {
+        gap: 5px;
+    }
+
+    .wrapper-for-header nav.is-open ul a {
+        gap: 7px;
+    }
+
+    .wrapper-for-header nav.is-open .hovered-link {
+        max-width: 100px;
+        opacity: 1;
+    }
+}
+
+/* footer link for the current section */
+.quick-links ul a.is-current {
+    color: #fff;
+}
