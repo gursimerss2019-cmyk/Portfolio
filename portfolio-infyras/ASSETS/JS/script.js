@@ -1,9 +1,7 @@
-
-
 gsap.registerPlugin(ScrollTrigger);
 
 /* ---------- 1. Your photo (transparent PNG works best) ---------- */
-const PHOTO = "ASSETS/IMAGES/ceo-img.png";
+const PHOTO = "ASSETS/IMAGES/ceo-img.webp";
 const placeholder = "data:image/svg+xml;utf8," + encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 700"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bdbdbd"/><stop offset="1" stop-color="#e9e9e9"/></linearGradient></defs>
  <path d="M60 700 C70 520 170 470 300 460 C430 470 530 520 540 700Z" fill="url(#g)"/>
