@@ -223,60 +223,186 @@ imgtl.fromTo(".expertise-parent",
 
 gsap.registerPlugin(ScrollTrigger);
 
-const panels = gsap.utils.toArray(".expertise-panel");
-const wrapper = document.querySelector(".expertise-horizontal-wrapper");
+// const panels = gsap.utils.toArray(".expertise-panel");
+// const wrapper = document.querySelector(".expertise-horizontal-wrapper");
 
-// total scroll distance = real width - viewport width
-const getScrollDistance = () => wrapper.scrollWidth - window.innerWidth;
+// // total scroll distance = real width - viewport width
+// const getScrollDistance = () => wrapper.scrollWidth - window.innerWidth;
 
-const scrollTween = gsap.to(wrapper, {
-  x: () => -(getScrollDistance()),
-  ease: "none",
-  scrollTrigger: {
-    trigger: ".expertise-horizontal-section",
-    start: "top top",
-    end: () => "+=" + getScrollDistance(),
-    pin: true,
-    scrub: 1,
-    invalidateOnRefresh: true,
-    anticipatePin: 1
+// const scrollTween = gsap.to(wrapper, {
+//   x: () => -(getScrollDistance()),
+//   ease: "none",
+//   scrollTrigger: {
+//     trigger: ".expertise-horizontal-section",
+//     start: "top top",
+//     end: () => "+=" + getScrollDistance(),
+//     pin: true,
+//     scrub: 1,
+//     invalidateOnRefresh: true,
+//     anticipatePin: 1
+//   }
+// });
+
+// // animations per panel
+// panels.forEach((panel) => {
+//   gsap.from(panel.querySelector(".title"), {
+//     y: 80,
+//     opacity: 0,
+//     scrollTrigger: {
+//       trigger: panel,
+//       containerAnimation: scrollTween,
+//       start: "left center"
+//     }
+//   })
+
+//   gsap.from(panel.querySelector(".desc"), {
+//     y: 40,
+//     opacity: 0,
+//     delay: 0.1,
+//     scrollTrigger: {
+//       trigger: panel,
+//       containerAnimation: scrollTween,
+//       start: "left center"
+//     }
+//   })
+
+//   gsap.from(panel.querySelector(".cards"), {
+//     scale: 0.8,
+//     rotate: -10,
+//     opacity: 0,
+//     scrollTrigger: {
+//       trigger: panel,
+//       containerAnimation: scrollTween,
+//       start: "left center"
+//     }
+//   })
+// })
+// new js
+/* ===== Expertise: pinned "card deck" section =====
+   In script.js, DELETE the old block that starts with:
+       gsap.registerPlugin(ScrollTrigger);
+       const panels = gsap.utils.toArray(".expertise-panel");
+       ...
+   and ends after the panels.forEach((panel) => { ... }) loop.
+   Paste this in its place. */
+
+(function () {
+  const section = document.querySelector(".expertise-horizontal-section");
+  const panels = gsap.utils.toArray(".expertise-panel");
+  if (!section || !panels.length) return;
+
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    section.classList.add("xp-static");
+    return;
   }
-});
 
-// animations per panel
-panels.forEach((panel) => {
-  gsap.from(panel.querySelector(".title"), {
-    y: 80,
-    opacity: 0,
-    scrollTrigger: {
-      trigger: panel,
-      containerAnimation: scrollTween,
-      start: "left center"
-    }
-  })
+  /* stop the mobile address bar showing/hiding from re-triggering the pin */
+  ScrollTrigger.config({ ignoreMobileResize: true });
 
-  gsap.from(panel.querySelector(".desc"), {
-    y: 40,
-    opacity: 0,
-    delay: 0.1,
-    scrollTrigger: {
-      trigger: panel,
-      containerAnimation: scrollTween,
-      start: "left center"
-    }
-  })
+  const N = panels.length;
+  const pad = n => String(n).padStart(2, "0");
+  const tints = ["#D7D6D3", "#DAD3CA", "#D1D8DA", "#D5D9D0", "#DDD2D0", "#D3D3DC", "#D7D6D3"];
 
-  gsap.from(panel.querySelector(".cards"), {
-    scale: 0.8,
-    rotate: -10,
-    opacity: 0,
+  /* ---- progress rail (built here, no HTML change needed) ---- */
+  const rail = document.createElement("div");
+  rail.className = "xp-rail";
+  rail.setAttribute("aria-hidden", "true");
+  rail.innerHTML = `<b class="xp-now">01</b><span class="xp-track"><i class="xp-fill"></i></span><span>${pad(N)}</span>`;
+  section.append(rail);
+  const now = rail.querySelector(".xp-now");
+  const fill = rail.querySelector(".xp-fill");
+
+  /* ---- prep each panel: big ghost number + split title ---- */
+  const parts = panels.map(p => {
+    const label = p.querySelector(".label");
+    const title = p.querySelector(".title");
+
+    const ghost = document.createElement("div");
+    ghost.className = "xp-ghost";
+    ghost.setAttribute("aria-hidden", "true");
+    ghost.textContent = (label.textContent.match(/\d+/) || [""])[0];
+    p.prepend(ghost);
+
+    const text = title.textContent;
+    title.textContent = "";
+    [...text].forEach(c => {
+      const s = document.createElement("span");
+      s.className = "xp-ch";
+      s.textContent = c;
+      title.appendChild(s);
+    });
+
+    return {
+      p, label, ghost,
+      chars: title.querySelectorAll(".xp-ch"),
+      desc: p.querySelector(".desc"),
+      cards: p.querySelector(".cards")
+    };
+  });
+
+  gsap.set(panels, { autoAlpha: 0 });
+  gsap.set(panels[0], { autoAlpha: 1 });
+
+  /* ---- one scrubbed timeline: panel i is "centered" around time i ---- */
+  let lastIdx = 0;
+  const tl = gsap.timeline({
+    defaults: { ease: "none" },
     scrollTrigger: {
-      trigger: panel,
-      containerAnimation: scrollTween,
-      start: "left center"
+      trigger: section,
+      start: "top top",
+      /* scroll length per scene: a little shorter on phones */
+      end: () => "+=" + window.innerHeight * N * (window.innerWidth < 768 ? 0.75 : 0.85),
+      pin: true,
+      scrub: 1,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      onUpdate: self => {
+        gsap.set(fill, { scaleY: self.progress });
+        const idx = Math.min(N - 1, Math.max(0, Math.floor(self.progress * tl.duration() + 0.3)));
+        if (idx !== lastIdx) {
+          lastIdx = idx;
+          now.textContent = pad(idx + 1);
+          gsap.fromTo(now, { yPercent: 60, opacity: 0 }, { yPercent: 0, opacity: 1, duration: .35, ease: "power3.out", overwrite: true });
+        }
+      }
     }
-  })
-})
+  });
+
+  parts.forEach((o, i) => {
+    /* IN (not for the first panel, it is already there) */
+    if (i > 0) {
+      const s = i - 0.25;
+      tl.to(o.p, { autoAlpha: 1, duration: .001 }, i - 0.4);
+      tl.to(section, { backgroundColor: tints[i % tints.length], duration: .5 }, i - 0.3);
+      tl.fromTo(o.ghost, { yPercent: 30, opacity: 0 }, { yPercent: 0, opacity: 1, duration: .5, ease: "power2.out" }, s);
+      tl.fromTo(o.label, { x: -24, opacity: 0 }, { x: 0, opacity: 1, duration: .3, ease: "power2.out" }, s);
+      tl.fromTo(o.chars, { yPercent: 110 }, { yPercent: 0, duration: .35, stagger: { each: .03 }, ease: "power3.out" }, s + 0.05);
+      tl.fromTo(o.desc, { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: .4, ease: "power2.out" }, s + 0.15);
+      tl.fromTo(o.cards,
+        { yPercent: 70, rotate: -14, rotationY: -35, scale: .7, opacity: 0, transformPerspective: 900 },
+        { yPercent: 0, rotate: 0, rotationY: 0, scale: 1, opacity: 1, duration: .5, ease: "power3.out" }, s);
+    }
+
+    /* OUT (not for the last panel) */
+    if (i < N - 1) {
+      const o2 = i + 0.6;
+      tl.fromTo(o.cards,
+        { xPercent: 0, yPercent: 0, rotate: 0, rotationY: 0, scale: 1, opacity: 1, transformPerspective: 900 },
+        { xPercent: 35, yPercent: -55, rotate: 16, rotationY: 35, scale: .8, opacity: 0, duration: .4, ease: "power2.in", immediateRender: false }, o2);
+      tl.fromTo(o.chars, { yPercent: 0 }, { yPercent: -110, duration: .3, stagger: { each: .02 }, ease: "power2.in", immediateRender: false }, o2);
+      tl.fromTo(o.desc, { y: 0, opacity: 1 }, { y: -30, opacity: 0, duration: .3, immediateRender: false }, o2);
+      tl.fromTo(o.label, { opacity: 1 }, { opacity: 0, duration: .25, immediateRender: false }, o2);
+      tl.fromTo(o.ghost, { yPercent: 0, opacity: 1 }, { yPercent: -35, opacity: 0, duration: .4, immediateRender: false }, o2);
+      tl.to(o.p, { autoAlpha: 0, duration: .001 }, i + 1);
+    }
+  });
+
+  /* short hold on the last panel before the page scrolls on */
+  tl.to({}, { duration: .1 }, N - 0.4);
+})();
+// new js
+
+
 
 /* re-measure once images and fonts have loaded */
 window.addEventListener("load", () => ScrollTrigger.refresh());
